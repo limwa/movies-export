@@ -185,15 +185,36 @@ export function UserDataVisualizer({
           <h1 className="text-3xl font-bold tracking-tight">
             User Data Dashboard
           </h1>
-          <button
-            onClick={() => {
-              localStorage.removeItem("mw-user-data");
-              setData(undefined);
-            }}
-            className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 underline"
-          >
-            Go back to Import page
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (!data) return;
+                const blob = new Blob([JSON.stringify(data, null, 2)], {
+                  type: "application/json",
+                });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `mw-export-${new Date().toISOString().split("T")[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline"
+            >
+              Export Data
+            </button>
+            <button
+              onClick={() => {
+                localStorage.removeItem("mw-user-data");
+                setData(undefined);
+              }}
+              className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 underline"
+            >
+              Upload a different export
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <StatCard label="Total Bookmarks" value={stats.totalBookmarks} />
