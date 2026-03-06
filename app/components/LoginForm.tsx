@@ -23,7 +23,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onLogin }: LoginFormProps) {
-  const [url, setUrl] = useState("https://backend.fifthwit.net");
+  const [url, setUrl] = useState("https://backend.pstream.mov");
   const [mnemonic, setMnemonic] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             onChange={(e) => setUrl(e.target.value)}
             required
             className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-            placeholder="https://backend.fifthwit.net"
+            placeholder="https://backend.pstream.mov"
           />
         </div>
 
