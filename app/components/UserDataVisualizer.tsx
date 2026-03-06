@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserData } from "../lib/data";
 import { ItemDetail } from "./ItemDetail";
+import { LoginForm } from "./LoginForm";
 
 type BookmarkEntry = UserData["bookmarks"][string] & { id: string };
 type ProgressEntry = UserData["progress"][string] & { id: string };
@@ -20,6 +21,7 @@ export function UserDataVisualizer({
   const [data, setData] = useState<UserData | undefined>(initialData);
   const [activeTab, setActiveTab] = useState<Tab>("bookmarks");
   const [viewId, setViewId] = useState<string | null>(null);
+  const [importMode, setImportMode] = useState<"upload" | "login">("login");
 
   useEffect(() => {
     const stored = localStorage.getItem("mw-user-data");
@@ -35,65 +37,105 @@ export function UserDataVisualizer({
   if (!data) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center p-8 text-center text-slate-800 dark:text-slate-100">
-        <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
-          <div>
-            <h1 className="text-3xl font-bold text-center mb-2">Import Data</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-center text-sm">
-              Visualize your pstream.mov watch history and bookmarks.
-            </p>
-          </div>
+        <div className="mb-8 flex space-x-4 bg-white dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
+          <button
+            onClick={() => setImportMode("login")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              importMode === "login"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            }`}
+          >
+            Login with Passphrase
+          </button>
+          <button
+            onClick={() => setImportMode("upload")}
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              importMode === "upload"
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            }`}
+          >
+            Upload File
+          </button>
+        </div>
 
-          <div className="space-y-4 text-left bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
-            <h3 className="font-semibold text-sm uppercase tracking-wide text-slate-500">
-              Instructions
-            </h3>
-            <ol className="list-decimal list-inside space-y-2 text-sm">
-              <li>
-                Go to{" "}
-                <a
-                  href="https://pstream.mov/migration/download"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline break-all"
-                >
-                  pstream.mov/migration/download
-                </a>
-              </li>
-              <li>Download your data JSON file</li>
-              <li>Upload the file below</li>
-            </ol>
-          </div>
+        {importMode === "login" ? (
+          <LoginForm
+            onLogin={(d) => {
+              setData(d);
+              try {
+                localStorage.setItem("mw-user-data", JSON.stringify(d));
+              } catch (storageError) {
+                console.error("LocalStorage error:", storageError);
+                alert(
+                  "Data loaded, but could not be saved to browser storage (quota exceeded).",
+                );
+              }
+            }}
+          />
+        ) : (
+          <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700">
+            <div>
+              <h1 className="text-3xl font-bold text-center mb-2">
+                Import Data
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-center text-sm">
+                Visualize your pstream.mov watch history and bookmarks.
+              </p>
+            </div>
 
-          <div className="pt-2">
-            <input
-              type="file"
-              accept=".json"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                  try {
-                    const json = JSON.parse(e.target?.result as string);
-                    setData(json);
+            <div className="space-y-4 text-left bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg">
+              <h3 className="font-semibold text-sm uppercase tracking-wide text-slate-500">
+                Instructions
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-sm">
+                <li>
+                  Go to{" "}
+                  <a
+                    href="https://pstream.mov/migration/download"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline break-all"
+                  >
+                    pstream.mov/migration/download
+                  </a>
+                </li>
+                <li>Download your data JSON file</li>
+                <li>Upload the file below</li>
+              </ol>
+            </div>
+
+            <div className="pt-2">
+              <input
+                type="file"
+                accept=".json"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = (e) => {
                     try {
-                      localStorage.setItem(
-                        "mw-user-data",
-                        JSON.stringify(json),
-                      );
-                    } catch (storageError) {
-                      console.error("LocalStorage error:", storageError);
-                      alert(
-                        "Data loaded, but could not be saved to browser storage (quota exceeded). You will need to upload the file again next time.",
-                      );
+                      const json = JSON.parse(e.target?.result as string);
+                      setData(json);
+                      try {
+                        localStorage.setItem(
+                          "mw-user-data",
+                          JSON.stringify(json),
+                        );
+                      } catch (storageError) {
+                        console.error("LocalStorage error:", storageError);
+                        alert(
+                          "Data loaded, but could not be saved to browser storage (quota exceeded). You will need to upload the file again next time.",
+                        );
+                      }
+                    } catch (err) {
+                      alert("Invalid JSON file");
                     }
-                  } catch (err) {
-                    alert("Invalid JSON file");
-                  }
-                };
-                reader.readAsText(file);
-              }}
-              className="block w-full text-sm text-slate-500
+                  };
+                  reader.readAsText(file);
+                }}
+                className="block w-full text-sm text-slate-500
                 file:mr-4 file:py-2.5 file:px-4
                 file:rounded-lg file:border-0
                 file:text-sm file:font-semibold
@@ -101,9 +143,10 @@ export function UserDataVisualizer({
                 file:cursor-pointer hover:file:bg-blue-700
                 cursor-pointer
               "
-            />
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -149,7 +192,7 @@ export function UserDataVisualizer({
             }}
             className="text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 underline"
           >
-            Upload a different export
+            Go back to Import page
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
