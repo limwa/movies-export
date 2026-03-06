@@ -2,6 +2,8 @@
 
 import { UserData } from "../lib/data";
 
+type ProgressEntry = UserData["progress"][string];
+
 interface ItemDetailProps {
   data: UserData;
   id: string;
@@ -68,6 +70,14 @@ export function ItemDetail({ data, id, onBack }: ItemDetailProps) {
               {group && group.length > 0 && (
                 <span>Group: {group.join(", ")}</span>
               )}
+              <a
+                href={`https://www.themoviedb.org/${type === "movie" ? "movie" : "tv"}/${id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline flex items-center gap-0.5"
+              >
+                TMDB ↗
+              </a>
             </div>
 
             {/* Overall Progress for Movies */}
@@ -92,7 +102,7 @@ export function ItemDetail({ data, id, onBack }: ItemDetailProps) {
             <h2 className="text-2xl font-bold border-b border-slate-200 dark:border-slate-700 pb-4">
               Episodes Progress
             </h2>
-            <SeasonsList progressItem={progressItem} />
+            <SeasonsList progressItem={progressItem} showId={id} />
           </div>
         )}
       </div>
@@ -140,20 +150,26 @@ function formatTime(seconds: number) {
   return `${m}:${sStr}`;
 }
 
-function SeasonsList({ progressItem }: { progressItem: any }) {
+function SeasonsList({
+  progressItem,
+  showId,
+}: {
+  progressItem: ProgressEntry;
+  showId: string;
+}) {
   // Sort seasons by number
   const seasons = Object.values(progressItem.seasons || {}).sort(
-    (a: any, b: any) => a.number - b.number,
+    (a, b) => a.number - b.number,
   );
 
   const episodes = Object.values(progressItem.episodes || {});
 
   return (
     <div className="space-y-6">
-      {seasons.map((season: any) => {
+      {seasons.map((season) => {
         const seasonEpisodes = episodes
-          .filter((e: any) => e.seasonId === season.id)
-          .sort((a: any, b: any) => a.number - b.number);
+          .filter((e) => e.seasonId === season.id)
+          .sort((a, b) => a.number - b.number);
 
         if (seasonEpisodes.length === 0) return null;
 
@@ -171,7 +187,7 @@ function SeasonsList({ progressItem }: { progressItem: any }) {
               </span>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-700">
-              {seasonEpisodes.map((ep: any) => (
+              {seasonEpisodes.map((ep) => (
                 <div
                   key={ep.id}
                   className="p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition"
@@ -186,6 +202,14 @@ function SeasonsList({ progressItem }: { progressItem: any }) {
                         <span className="font-medium truncate">
                           {ep.title || `Episode ${ep.number}`}
                         </span>
+                        <a
+                          href={`https://www.themoviedb.org/tv/${showId}/season/${season.number}/episode/${ep.number}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:underline shrink-0"
+                        >
+                          TMDB ↗
+                        </a>
                       </div>
                     </div>
                     <div className="w-full sm:w-72 shrink-0">
