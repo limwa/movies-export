@@ -25,7 +25,7 @@ type WatchProgress = {
 
 type EpisodeProgressEntry = {
   id: EpisodeId,
-  number: 6,
+  number: number,
   title: "",
   progress: WatchProgress,
   seasonId: SeasonId,
